@@ -4,9 +4,10 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-
+@Tag(name = "Projects", description = "Create and list projects")
 @RestController
 @RequestMapping("/api/projects")
 public class ProjectController {
@@ -16,7 +17,7 @@ public class ProjectController {
     public ProjectController(ProjectRepository projects) {
         this.projects = projects;
     }
-
+    @Operation(summary = "Create a project")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ProjectResponse create(@Valid @RequestBody CreateProjectRequest request) {
@@ -26,7 +27,7 @@ public class ProjectController {
         Project saved = projects.save(new Project(request.name(), request.slug()));
         return ProjectResponse.from(saved);
     }
-
+    @Operation(summary = "List all projects")
     @GetMapping
     public List<ProjectResponse> list() {
         return projects.findAll().stream()

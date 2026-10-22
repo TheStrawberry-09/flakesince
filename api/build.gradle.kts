@@ -34,7 +34,7 @@ dependencies {
 	runtimeOnly("org.postgresql:postgresql")
 	implementation("org.flywaydb:flyway-database-postgresql")
 	testImplementation("org.testcontainers:testcontainers-postgresql")
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.1.1")
 
 }
 
