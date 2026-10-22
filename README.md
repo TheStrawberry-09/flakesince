@@ -1,5 +1,7 @@
 # FlakeSince
 
+[![api](https://github.com/TheStrawberry-09/flakesince/actions/workflows/api.yml/badge.svg)](https://github.com/TheStrawberry-09/flakesince/actions/workflows/api.yml)
+
 Find flaky tests in CI and the commit they started at. Free and self-hosted.
 
 FlakeSince reads the JUnit XML your CI already produces, keeps a pass/fail history per commit, and estimates when each test became flaky, with a confidence level.
