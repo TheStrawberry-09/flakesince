@@ -6,7 +6,8 @@
 # OS files
 .DS_Store
 Thumbs.db
-
+*.exe
+/ingest
 # Secrets: never commit these
 .env
 

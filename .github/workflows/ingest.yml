@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: ingest/go.mod
-          cache: false
+          cache-dependency-path: ingest/go.sum
 
       - run: go vet ./...
       - run: go test ./...
