@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "API keys", description = "Upload keys for CI")
 @RestController
-@RequestMapping("/api/projects/{projectId}/api-keys")
+@RequestMapping("/api")
 public class ApiKeyController {
 
     private final ApiKeyService apiKeyService;
@@ -18,10 +18,17 @@ public class ApiKeyController {
     }
 
     @Operation(summary = "Create an API key (the key is shown only once)")
-    @PostMapping
+    @PostMapping("/projects/{projectId}/api-keys")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiKeyCreatedResponse create(@PathVariable Long projectId,
                                         @Valid @RequestBody CreateApiKeyRequest request) {
         return apiKeyService.create(projectId, request.label());
+    }
+
+    @Operation(summary = "Revoke an API key")
+    @DeleteMapping("/api-keys/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void revoke(@PathVariable Long id) {
+        apiKeyService.revoke(id);
     }
 }

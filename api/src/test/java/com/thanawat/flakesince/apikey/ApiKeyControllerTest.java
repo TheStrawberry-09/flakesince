@@ -18,6 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -25,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class ApiKeyControllerTest {
 
+    @Autowired ApiKeyService apiKeyService;
     @Autowired MockMvc mvc;
     @Autowired ProjectRepository projects;
     @Autowired ApiKeyRepository apiKeys;
@@ -71,5 +75,35 @@ class ApiKeyControllerTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.label").exists());
+    }
+
+    @Test
+    void revokesKey() throws Exception {
+        Project project = projects.save(new Project("Flaky Demo", "flaky-demo"));
+        Long keyId = apiKeyService.create(project.getId(), "github-actions").id();
+
+        mvc.perform(delete("/api/api-keys/" + keyId))
+                .andExpect(status().isNoContent());
+
+        assertFalse(apiKeys.findById(keyId).orElseThrow().isActive());
+    }
+
+    @Test
+    void revokingTwiceKeepsTheFirstRevokeTime() throws Exception {
+        Project project = projects.save(new Project("Flaky Demo", "flaky-demo"));
+        Long keyId = apiKeyService.create(project.getId(), "github-actions").id();
+
+        mvc.perform(delete("/api/api-keys/" + keyId)).andExpect(status().isNoContent());
+        var firstRevokedAt = apiKeys.findById(keyId).orElseThrow().getRevokedAt();
+
+        mvc.perform(delete("/api/api-keys/" + keyId)).andExpect(status().isNoContent());
+
+        assertEquals(firstRevokedAt, apiKeys.findById(keyId).orElseThrow().getRevokedAt());
+    }
+
+    @Test
+    void revokingUnknownKeyReturns404() throws Exception {
+        mvc.perform(delete("/api/api-keys/999999"))
+                .andExpect(status().isNotFound());
     }
 }

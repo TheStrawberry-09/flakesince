@@ -55,4 +55,12 @@ public class ApiKeyService {
             throw new IllegalStateException("SHA-256 is not available", e);
         }
     }
+
+    @Transactional
+    public void revoke(Long keyId) {
+        ApiKey key = apiKeys.findById(keyId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "API key " + keyId + " not found"));
+        key.revoke();
+    }
 }
