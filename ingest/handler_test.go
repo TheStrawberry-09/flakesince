@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -18,7 +19,8 @@ func TestHealth(t *testing.T) {
 
 func TestIngestAcceptsBody(t *testing.T) {
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/ingest", bytes.NewReader([]byte("<testsuite/>")))
+		req := httptest.NewRequest(http.MethodPost, "/ingest", strings.NewReader(
+    		`<testsuite name="Demo"><testcase classname="Demo" name="works()" time="0.001"/></testsuite>`))
 	newMux().ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusAccepted {
@@ -43,5 +45,14 @@ func TestIngestOnlyAcceptsPost(t *testing.T) {
 
 	if rec.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusMethodNotAllowed)
+	}
+}
+func TestIngestRejectsInvalidXml(t *testing.T) {
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/ingest", strings.NewReader("<html></html>"))
+	newMux().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusBadRequest)
 	}
 }

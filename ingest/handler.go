@@ -27,7 +27,13 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusAccepted, map[string]int{"bytes": len(body)})
+		results, err := ParseJUnit(body)
+    	if err != nil {
+    		writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+    		return
+    	}
+
+    	writeJSON(w, http.StatusAccepted, map[string]int{"results": len(results)})
 }
 
 func writeJSON(w http.ResponseWriter, status int, value any) {
