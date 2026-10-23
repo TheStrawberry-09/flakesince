@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.thanawat.flaky_demo.FlakyDemoApplicationTests" tests="4" skipped="0" failures="1" errors="0" timestamp="2026-10-18T13:44:38.964Z" hostname="SUN" time="1.66">
+    <properties/>
+    <testcase name="flakyRandomTest()" classname="com.thanawat.flaky_demo.FlakyDemoApplicationTests" time="0.423">
+        <failure message="org.opentest4j.AssertionFailedError: expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;true&gt; but was: &lt;false&gt;
+            at com.thanawat.flaky_demo.FlakyDemoApplicationTests.flakyRandomTest(FlakyDemoApplicationTests.java:26)
+        </failure>
+    </testcase>
+    <testcase name="uppercaseWorks()" classname="com.thanawat.flaky_demo.FlakyDemoApplicationTests" time="0.002"/>
+    <testcase name="additionWorks()" classname="com.thanawat.flaky_demo.FlakyDemoApplicationTests" time="0.001"/>
+    <testcase name="contextLoads()" classname="com.thanawat.flaky_demo.FlakyDemoApplicationTests" time="0.001"/>
+    <system-out><![CDATA[Spring log lines…]]></system-out>
+</testsuite>

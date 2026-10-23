@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites name="pytest tests">
+    <testsuite name="pytest" errors="0" failures="1" skipped="1" tests="3" time="0.120" timestamp="2026-10-24T09:00:00.000000+07:00" hostname="runner">
+        <testcase classname="tests.test_math" name="test_add" time="0.001"/>
+        <testcase classname="tests.test_math" name="test_flaky" time="0.002">
+            <failure message="assert 0.21 &gt; 0.3">def test_flaky():
+                &gt;       assert random.random() &gt; 0.3
+                E       assert 0.21 &gt; 0.3</failure>
+        </testcase>
+        <testcase classname="tests.test_math" name="test_later" time="0.000">
+            <skipped type="pytest.skip" message="not ready yet">tests/test_math.py:12: not ready yet</skipped>
+        </testcase>
+    </testsuite>
+</testsuites>

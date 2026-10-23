@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="2" failures="1">
+    <testsuite name="example.com/calc" tests="2" failures="1" errors="0" id="0" hostname="runner" time="0.250" timestamp="2026-10-24T09:00:00Z">
+        <testcase name="TestAdd" classname="example.com/calc" time="0.000"></testcase>
+        <testcase name="TestTimeout" classname="example.com/calc" time="0.250">
+            <failure message="Failed" type="">calc_test.go:20: took 250ms, limit is 200ms</failure>
+        </testcase>
+    </testsuite>
+</testsuites>

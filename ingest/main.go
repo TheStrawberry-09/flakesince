@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
@@ -13,9 +16,30 @@ func main() {
 		port = "8081"
 	}
 
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		slog.Error("DATABASE_URL is not set")
+		os.Exit(1)
+	}
+
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, databaseURL)
+	if err != nil {
+		slog.Error("invalid DATABASE_URL", "error", err)
+		os.Exit(1)
+	}
+	defer pool.Close()
+
+	if err := pool.Ping(ctx); err != nil {
+		slog.Error("cannot reach the database", "error", err)
+		os.Exit(1)
+	}
+
+	a := &app{keys: newCachingKeyChecker(&dbKeyChecker{pool: pool}, 60*time.Second)}
+
 	server := &http.Server{
 		Addr:              ":" + port,
-		Handler:           newMux(),
+		Handler:           newMux(a),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      30 * time.Second,
@@ -27,11 +51,4 @@ func main() {
 		slog.Error("server stopped", "error", err)
 		os.Exit(1)
 	}
-}
-
-func newMux() *http.ServeMux {
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", handleHealth)
-	mux.HandleFunc("POST /ingest", handleIngest)
-	return mux
 }
