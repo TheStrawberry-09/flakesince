@@ -10,3 +10,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+
+  - package-ecosystem: "gomod"
+    directory: "/ingest"
+    schedule:
+      interval: "weekly"
