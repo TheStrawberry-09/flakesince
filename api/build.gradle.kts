@@ -35,6 +35,8 @@ dependencies {
 	implementation("org.flywaydb:flyway-database-postgresql")
 	testImplementation("org.testcontainers:testcontainers-postgresql")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.1.1")
+	implementation(platform("software.amazon.awssdk:bom:2.57.1"))
+	implementation("software.amazon.awssdk:sqs")
 
 }
 
