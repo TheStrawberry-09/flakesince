@@ -1,0 +1,78 @@
+name: FlakeSince upload
+description: Upload JUnit XML test results to FlakeSince
+branding:
+  icon: upload-cloud
+  color: blue
+
+inputs:
+  url:
+    description: Base URL of the FlakeSince ingest service
+    required: true
+  api-key:
+    description: FlakeSince API key (store it in a repository secret)
+    required: true
+  paths:
+    description: Glob for the JUnit XML files
+    required: false
+    default: '**/build/test-results/**/*.xml'
+  fail-on-error:
+    description: Fail the job if the upload fails
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Upload test results to FlakeSince
+      shell: bash
+      env:
+        FLAKESINCE_URL: ${{ inputs.url }}
+        FLAKESINCE_API_KEY: ${{ inputs.api-key }}
+        PATHS: ${{ inputs.paths }}
+        FAIL_ON_ERROR: ${{ inputs.fail-on-error }}
+        COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        BRANCH: ${{ github.head_ref || github.ref_name }}
+        RUN_ID: ${{ github.run_id }}
+        RUN_ATTEMPT: ${{ github.run_attempt }}
+      run: |
+        set -euo pipefail
+        shopt -s globstar nullglob
+
+        files=( $PATHS )
+        if [ ${#files[@]} -eq 0 ]; then
+          echo "::warning::FlakeSince: no files match '$PATHS', nothing uploaded"
+          exit 0
+        fi
+        echo "FlakeSince: combining ${#files[@]} file(s) into one upload"
+
+        combined="$RUNNER_TEMP/flakesince-results.xml"
+        {
+          echo '<testsuites>'
+          for f in "${files[@]}"; do
+            sed -e 's/<?xml[^>]*?>//' "$f"
+          done
+          echo '</testsuites>'
+        } > "$combined"
+
+        response="$RUNNER_TEMP/flakesince-response.json"
+        status=$(curl -sS -o "$response" -w '%{http_code}' --max-time 60 -X POST \
+          -H "Authorization: Bearer $FLAKESINCE_API_KEY" \
+          -H "X-Commit-Sha: $COMMIT_SHA" \
+          -H "X-Branch: $BRANCH" \
+          -H "X-Run-Id: $RUN_ID" \
+          -H "X-Run-Attempt: $RUN_ATTEMPT" \
+          --data-binary "@$combined" \
+          "${FLAKESINCE_URL%/}/ingest") || status=000
+        cat "$response" 2>/dev/null || true
+        echo
+
+        if [ "$status" = "202" ]; then
+          echo "FlakeSince: upload accepted"
+          exit 0
+        fi
+        message="FlakeSince upload failed (HTTP $status)"
+        if [ "$FAIL_ON_ERROR" = "true" ]; then
+          echo "::error::$message"
+          exit 1
+        fi
+        echo "::warning::$message"

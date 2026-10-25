@@ -26,7 +26,8 @@ type Result struct {
 }
 
 type xmlSuites struct {
-	Suites []xmlSuite `xml:"testsuite"`
+	Suites []xmlSuite  `xml:"testsuite"`
+	Groups []xmlSuites `xml:"testsuites"`
 }
 
 type xmlSuite struct {
@@ -63,7 +64,7 @@ func ParseJUnit(data []byte) ([]Result, error) {
 		if err := xml.Unmarshal(data, &doc); err != nil {
 			return nil, fmt.Errorf("invalid JUnit XML: %w", err)
 		}
-		suites = doc.Suites
+		suites = doc.all()
 	case "testsuite":
 		var suite xmlSuite
 		if err := xml.Unmarshal(data, &suite); err != nil {
@@ -169,4 +170,12 @@ func truncate(s string, max int) string {
 		return s
 	}
 	return string(runes[:max])
+}
+
+func (g xmlSuites) all() []xmlSuite {
+	suites := g.Suites
+	for _, nested := range g.Groups {
+		suites = append(suites, nested.all()...)
+	}
+	return suites
 }

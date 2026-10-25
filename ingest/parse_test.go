@@ -113,3 +113,24 @@ func TestTruncateKeepsWholeCharacters(t *testing.T) {
 		t.Errorf("truncate = %q, want %q", got, "ทดส")
 	}
 }
+
+func TestParseJUnitReadsCombinedFiles(t *testing.T) {
+	combined := `<testsuites>
+  <testsuite name="A"><testcase classname="A" name="one()" time="0.001"/></testsuite>
+  <testsuites name="pytest">
+    <testsuite name="pytest"><testcase classname="tests.b" name="test_two" time="0.002"/></testsuite>
+  </testsuites>
+</testsuites>`
+
+	got, err := ParseJUnit([]byte(combined))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []row{
+		{"A", "one()", "PASSED", 1},
+		{"tests.b", "test_two", "PASSED", 2},
+	}
+	if !reflect.DeepEqual(rows(got), want) {
+		t.Errorf("results:\n got  %+v\n want %+v", rows(got), want)
+	}
+}
