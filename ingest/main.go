@@ -35,7 +35,25 @@ func main() {
 		os.Exit(1)
 	}
 
-	a := &app{keys: newCachingKeyChecker(&dbKeyChecker{pool: pool}, 60*time.Second)}
+		queueName := os.Getenv("SQS_QUEUE_NAME")
+    	if queueName == "" {
+    		slog.Error("SQS_QUEUE_NAME is not set")
+    		os.Exit(1)
+    	}
+
+    	startupCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    	queue, err := newSQSPublisher(startupCtx, queueName)
+    	cancel()
+    	if err != nil {
+    		slog.Error("cannot reach the queue", "error", err)
+    		os.Exit(1)
+    	}
+
+    	a := &app{
+    		keys:  newCachingKeyChecker(&dbKeyChecker{pool: pool}, 60*time.Second),
+    		queue: queue,
+    		now:   time.Now,
+    	}
 
 	server := &http.Server{
 		Addr:              ":" + port,

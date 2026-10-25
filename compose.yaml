@@ -11,5 +11,13 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql
 
+  sqs:
+    image: softwaremill/elasticmq-native:1.7.1
+    container_name: flakesince-sqs
+    ports:
+      - "9324:9324"
+    volumes:
+      - ./deploy/local/elasticmq.conf:/opt/elasticmq.conf:ro
+
 volumes:
   pgdata:
