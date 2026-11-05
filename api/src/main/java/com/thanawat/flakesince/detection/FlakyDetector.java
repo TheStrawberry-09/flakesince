@@ -64,7 +64,7 @@ public class FlakyDetector {
         if (window.runs() < MIN_RUNS) {
             return false;
         }
-        return window.fails() > 0 && window.fails() < window.runs();
+        return window.fails() >= 2 && window.rate() < 0.9;
     }
 
     /** Signal A: some commit has both a pass and a fail for this test. */
