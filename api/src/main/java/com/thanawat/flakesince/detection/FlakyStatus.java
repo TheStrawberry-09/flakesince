@@ -57,10 +57,12 @@ public class FlakyStatus {
         this.score = score;
         this.flaky = sameCommit || failureRateHit;
         if (flaky) {
-            if (firstDetectedAt == null) {
+            if (firstDetectedAt == null || now.isBefore(firstDetectedAt)) {
                 firstDetectedAt = now;
             }
-            lastSeenAt = now;
+            if (lastSeenAt == null || now.isAfter(lastSeenAt)) {
+                lastSeenAt = now;
+            }
         }
         this.updatedAt = now;
     }

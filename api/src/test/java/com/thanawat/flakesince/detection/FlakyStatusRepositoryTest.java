@@ -85,4 +85,17 @@ class FlakyStatusRepositoryTest {
                 "SELECT count(*) FROM flaky_status WHERE test_case_id = ?", Long.class, testCaseId);
         assertEquals(0L, count);
     }
+
+    @Test
+    void datesStayRightWhenRunsArriveOutOfOrder() {
+        Instant older = Instant.parse("2026-11-01T10:00:00Z");
+        Instant newer = Instant.parse("2026-11-03T10:00:00Z");
+
+        FlakyStatus status = new FlakyStatus(createTestCase("backfilled"), projectId);
+        status.record(true, false, null, 5, 0.5, newer);   // backfill sends the newest first
+        status.record(true, false, null, 6, 0.5, older);
+
+        assertEquals(older, status.getFirstDetectedAt());
+        assertEquals(newer, status.getLastSeenAt());
+    }
 }
