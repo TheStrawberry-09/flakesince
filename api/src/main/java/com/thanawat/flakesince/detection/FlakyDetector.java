@@ -3,16 +3,23 @@ package com.thanawat.flakesince.detection;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Service
 public class FlakyDetector {
 
     static final int WINDOW = 30;
     static final int MIN_RUNS = 10;
-    private final JdbcTemplate jdbc;
 
-    public FlakyDetector(JdbcTemplate jdbc) {
+    private final JdbcTemplate jdbc;
+    private final FlakyStatusRepository statuses;
+
+
+    public FlakyDetector(JdbcTemplate jdbc, FlakyStatusRepository statuses) {
         this.jdbc = jdbc;
+        this.statuses = statuses;
     }
+
 
     /** Signal A: some commit has both a pass and a fail for this test. */
     private static final String SAME_COMMIT_SQL = """
@@ -70,6 +77,25 @@ public class FlakyDetector {
     /** Signal A: some commit has both a pass and a fail for this test. */
     public boolean sameCommitSignal(long testCaseId) {
         return Boolean.TRUE.equals(jdbc.queryForObject(SAME_COMMIT_SQL, Boolean.class, testCaseId));
+    }
+
+    /** Run both signals for one test and save the verdict. */
+    public FlakyStatus recompute(long testCaseId, long projectId, Instant seenAt) {
+        boolean sameCommit = sameCommitSignal(testCaseId);
+        FailureWindow window = failureWindow(testCaseId);
+        boolean failureRate = failureRateSignal(window);
+
+        FlakyStatus status = statuses.findById(testCaseId)
+                .orElseGet(() -> new FlakyStatus(testCaseId, projectId));
+        status.record(sameCommit, failureRate, window.rate(), window.runs(),
+                score(sameCommit, failureRate), seenAt);
+        return statuses.save(status);
+    }
+
+    /** How sure we are that it's flaky: the share of signals that fired. */
+    static double score(boolean sameCommit, boolean failureRate) {
+        int hits = (sameCommit ? 1 : 0) + (failureRate ? 1 : 0);
+        return hits / 2.0;
     }
 
 }

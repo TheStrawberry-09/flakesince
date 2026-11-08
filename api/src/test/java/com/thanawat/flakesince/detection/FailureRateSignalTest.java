@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FailureRateSignalTest {
 
-    FlakyDetector detector = new FlakyDetector(null);
+    FlakyDetector detector = new FlakyDetector(null, null);
 
     @Test
     void flakyWhenSomeRunsFail() {
@@ -26,5 +26,13 @@ class FailureRateSignalTest {
     @Test
     void notJudgedWithTooFewRuns() {
         assertFalse(detector.failureRateSignal(new FlakyDetector.FailureWindow(5, 3)));
+    }
+
+    @Test
+    void scoreIsTheShareOfSignals() {
+        assertEquals(0.0, FlakyDetector.score(false, false));
+        assertEquals(0.5, FlakyDetector.score(true, false));
+        assertEquals(0.5, FlakyDetector.score(false, true));
+        assertEquals(1.0, FlakyDetector.score(true, true));
     }
 }
